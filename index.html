@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>スマートシティ建設ゲーム</title>
+  <title>SDGsスマートシティ・チャレンジ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <!-- 安定版AR.js -->
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
   <style>
     * {
@@ -33,6 +32,7 @@
       touch-action: manipulation;
       user-select: none;
       transition: all 0.2s;
+      min-width: 100px;
     }
     .ui-button:active {
       transform: scale(0.95);
@@ -56,10 +56,11 @@
       font-size: 24px;
       color: white;
       z-index: 100;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0,0,0,0.9);
       padding: 15px;
       border-radius: 10px;
       border: 2px solid #fff;
+      text-shadow: 0 0 10px rgba(255,255,255,0.5);
     }
     .controls {
       position: fixed;
@@ -80,18 +81,19 @@
       transform: translate(-50%, -50%);
       color: white;
       text-align: center;
-      background: rgba(0,0,0,0.9);
-      padding: 25px;
-      border-radius: 15px;
+      background: rgba(0,0,0,0.95);
+      padding: 30px;
+      border-radius: 20px;
       z-index: 200;
-      border: 2px solid #FFD700;
+      border: 3px solid #FFD700;
       max-width: 90%;
+      box-shadow: 0 0 30px rgba(255,215,0,0.5);
     }
     .sdgs-display {
       position: fixed;
       top: 100px;
       left: 20px;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0,0,0,0.9);
       padding: 15px;
       border-radius: 10px;
       color: white;
@@ -99,27 +101,31 @@
       border: 2px solid #4CAF50;
     }
     .sdgs-item {
-      margin: 5px 0;
+      margin: 8px 0;
       font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      min-width: 150px;
     }
     .mission-display {
       position: fixed;
       top: 250px;
       left: 20px;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0,0,0,0.9);
       color: white;
       padding: 15px;
       border-radius: 10px;
       border: 2px solid #FF9800;
       z-index: 90;
-      max-width: 250px;
+      min-width: 250px;
     }
     .timer {
-      font-size: 20px;
+      font-size: 24px;
       font-weight: bold;
       color: #FFD700;
       text-align: center;
-      margin: 8px 0;
+      margin: 10px 0;
+      text-shadow: 0 0 10px rgba(255,215,0,0.5);
     }
     .debug-info {
       position: fixed;
@@ -132,6 +138,26 @@
       font-size: 12px;
       z-index: 90;
     }
+    .combo-display {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(255,215,0,0.9);
+      color: black;
+      padding: 10px 15px;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      z-index: 100;
+    }
+    .tech-badge {
+      display: inline-block;
+      background: linear-gradient(145deg, #FF5722, #E64A19);
+      padding: 5px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      margin: 2px;
+    }
   </style>
 </head>
 <body>
@@ -141,17 +167,25 @@
   🏆 スコア: <span id="score">0</span>
 </div>
 
+<!-- コンボ表示 -->
+<div class="combo-display" id="comboDisplay" style="display: none;">
+  🔥 コンボ: <span id="comboCount">0</span>
+</div>
+
 <!-- SDGS表示 -->
 <div class="sdgs-display">
   <div class="sdgs-item" id="energy">⚡ エネルギー: <span>50%</span></div>
   <div class="sdgs-item" id="environment">🌿 環境: <span>70%</span></div>
   <div class="sdgs-item" id="economy">💰 経済: <span>30%</span></div>
+  <div class="sdgs-item" id="education">📚 教育: <span>60%</span></div>
 </div>
 
 <!-- ミッション表示 -->
 <div class="mission-display">
-  <div>🎯 <span id="missionTitle">エネルギー基盤を確立</span></div>
+  <div style="font-weight: bold; margin-bottom: 8px;">🎯 ミッション</div>
+  <div id="missionTitle">エネルギー基盤を確立</div>
   <div class="timer" id="gameTimer">⏱️ 03:00</div>
+  <div id="missionDescription" style="font-size: 12px; margin-top: 8px;">発電所を建設して電力供給を確保せよ！</div>
 </div>
 
 <!-- デバッグ情報 -->
@@ -170,10 +204,21 @@
 
 <!-- メッセージ表示 -->
 <div class="message" id="message">
-  <h2>🏗️ スマートシティ建設</h2>
-  <p>Hiroマーカーを映してスタート！</p>
+  <h2 style="color: #FFD700; margin-bottom: 15px;">🏗️ SDGsスマートシティ建設</h2>
+  <p>持続可能な街を3分間で建設！</p>
+  <p>SDGs目標をバランスよく達成せよ！</p>
   <br>
-  <button class="ui-button" onclick="startGame()" style="background:linear-gradient(145deg,#FFD700,#FF9800)">ゲームスタート</button>
+  <p>📱 Hiroマーカーを映して</p>
+  <br>
+  <button class="ui-button" onclick="startGame()" style="background:linear-gradient(145deg,#FFD700,#FF9800); font-size: 18px; padding: 15px 30px;">
+    🚀 ゲームスタート！
+  </button>
+  <div style="margin-top: 15px;">
+    <span class="tech-badge">A-Frame</span>
+    <span class="tech-badge">AR.js</span>
+    <span class="tech-badge">SDGs</span>
+    <span class="tech-badge">AI最適化</span>
+  </div>
 </div>
 
 <a-scene 
@@ -181,7 +226,12 @@
   arjs='sourceType: webcam; debugUIEnabled: false;'
   vr-mode-ui="enabled: false"
   renderer="colorManagement: true;"
+  light="defaultLightsEnabled: true;"
 >
+
+  <!-- ライティング -->
+  <a-entity light="type: ambient; color: #888; intensity: 0.8"></a-entity>
+  <a-entity light="type: directional; color: #FFF; intensity: 0.9; position: 2 5 3"></a-entity>
 
   <!-- マーカー -->
   <a-marker preset="hiro" id="marker">
@@ -189,10 +239,10 @@
     <a-plane 
       position="0 0 0" 
       rotation="-90 0 0" 
-      width="3" 
-      height="3" 
+      width="4" 
+      height="4" 
       color="#7CFC00"
-      opacity="0.2"
+      opacity="0.3"
     ></a-plane>
     
     <!-- 建物コンテナ -->
@@ -203,28 +253,52 @@
 </a-scene>
 
 <script>
-// ゲーム状態
+// ゲーム状態管理
 let score = 0;
-let gameTime = 180;
+let comboCount = 0;
+let lastPlaceTime = 0;
+let totalBuildings = 0;
+let isMarkerVisible = false;
+let gameTime = 180; // 3分
 let gameTimer;
 let gameStarted = false;
-let isMarkerVisible = false;
+let currentMission = 0;
 
 // SDGS状態
 let sdgsStatus = {
   energy: 50,
   environment: 70, 
-  economy: 30
+  economy: 30,
+  education: 60
 };
 
 // 施設効果
 const buildingEffects = {
-  house: { economy: 8, energy: -3 },
-  hospital: { economy: 5, energy: -5 },
-  park: { environment: 15, energy: -2 },
-  shop: { economy: 12, environment: -5 },
-  power: { energy: 20, environment: -8 }
+  house: { economy: 10, energy: -5, environment: -3 },
+  hospital: { economy: 8, education: 15, energy: -8 },
+  park: { environment: 20, energy: -3, economy: -2 },
+  shop: { economy: 15, environment: -8, energy: -5 },
+  power: { energy: 25, environment: -10, economy: 5 }
 };
+
+// ミッション定義
+const missions = [
+  {
+    title: "⚡ エネルギー基盤の確立",
+    description: "発電所を建設して電力供給を確保せよ！",
+    target: { energy: 70 }
+  },
+  {
+    title: "🌿 環境バランスの改善", 
+    description: "環境とエネルギーのバランスを取れ！",
+    target: { environment: 60, energy: 50 }
+  },
+  {
+    title: "🏗️ 総合都市開発",
+    description: "経済と教育をバランスよく発展させよ！",
+    target: { economy: 60, education: 70 }
+  }
+];
 
 // ゲーム開始
 function startGame() {
@@ -235,15 +309,20 @@ function startGame() {
   
   document.getElementById('message').style.display = 'none';
   score = 0;
+  comboCount = 0;
+  totalBuildings = 0;
   gameTime = 180;
   gameStarted = true;
+  currentMission = 0;
   
   // 状態リセット
-  sdgsStatus = { energy: 50, environment: 70, economy: 30 };
+  sdgsStatus = { energy: 50, environment: 70, economy: 30, education: 60 };
   
   updateScore();
   updateSDGsDisplay();
+  updateMissionDisplay();
   startGameTimer();
+  updateComboDisplay();
 }
 
 function startGameTimer() {
@@ -256,6 +335,9 @@ function startGameTimer() {
       if (gameTime <= 0) {
         endGame();
       }
+      
+      // ミッションチェック
+      checkMissionCompletion();
     }
   }, 1000);
 }
@@ -263,8 +345,19 @@ function startGameTimer() {
 function updateTimerDisplay() {
   const minutes = Math.floor(gameTime / 60);
   const seconds = gameTime % 60;
-  document.getElementById('gameTimer').textContent = 
-    `⏱️ ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  const timerElement = document.getElementById('gameTimer');
+  timerElement.textContent = `⏱️ ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  
+  // 残り1分で色を赤く
+  if (gameTime <= 60) {
+    timerElement.style.color = '#FF4444';
+  }
+}
+
+function updateMissionDisplay() {
+  const mission = missions[currentMission];
+  document.getElementById('missionTitle').textContent = mission.title;
+  document.getElementById('missionDescription').textContent = mission.description;
 }
 
 // 建物を配置
@@ -277,8 +370,21 @@ function placeBuilding(type) {
   const container = document.querySelector('#buildings-container');
   if (!container) return;
 
-  // スコア加算
-  score += 10;
+  // コンボ判定
+  const now = Date.now();
+  if (now - lastPlaceTime < 2000) { // 2秒以内ならコンボ
+    comboCount++;
+  } else {
+    comboCount = 1;
+  }
+  
+  // スコア計算（コンボボーナス付き）
+  const baseScore = 10;
+  const comboBonus = Math.floor(comboCount / 3) * 5;
+  const totalPoints = baseScore + comboBonus;
+  
+  score += totalPoints;
+  totalBuildings++;
   
   // SDGs効果を適用
   if (buildingEffects[type]) {
@@ -290,7 +396,7 @@ function placeBuilding(type) {
   
   // 建物を作成
   const building = document.createElement('a-entity');
-  setupBuilding(building, type);
+  setupBuilding(building, type, totalBuildings);
   container.appendChild(building);
   
   // アニメーション
@@ -298,53 +404,143 @@ function placeBuilding(type) {
   building.setAttribute('animation', {
     property: 'scale',
     to: '1 1 1',
-    dur: 600,
+    dur: 800,
     easing: 'easeOutElastic'
   });
   
+  // コンボエフェクト
+  if (comboBonus > 0) {
+    createParticleEffect();
+  }
+  
+  // メッセージ表示
+  showBuildMessage(`🏗️ ${getBuildingName(type)} 完成！`, totalPoints, comboBonus);
+  
   updateScore();
   updateSDGsDisplay();
+  updateComboDisplay();
+  lastPlaceTime = now;
   
-  // 10秒後に建物を削除
+  // 15秒後に建物を削除
   setTimeout(() => {
     if (building.parentNode) {
       building.parentNode.removeChild(building);
     }
-  }, 10000);
+  }, 15000);
 }
 
-function setupBuilding(building, type) {
-  // ランダムな位置に配置
-  const x = (Math.random() - 0.5) * 2;
-  const z = (Math.random() - 0.5) * 2;
+function setupBuilding(building, type, index) {
+  // 円形に配置
+  const angle = (index * 137.5) % 360;
+  const radius = 1.2 + Math.floor((index - 1) / 6) * 0.6;
+  const x = Math.cos(angle * Math.PI / 180) * radius;
+  const z = Math.sin(angle * Math.PI / 180) * radius;
   
   building.setAttribute('position', `${x} 0 ${z}`);
   
   switch(type) {
     case 'house':
-      building.setAttribute('geometry', 'primitive: box; width: 0.5; height: 0.5; depth: 0.5');
-      building.setAttribute('material', 'color: #2196F3');
+      building.setAttribute('geometry', 'primitive: box; width: 0.6; height: 0.6; depth: 0.6');
+      building.setAttribute('material', 'color: #2196F3; metalness: 0.3; roughness: 0.4');
+      // 屋根
+      const roof = document.createElement('a-entity');
+      roof.setAttribute('geometry', 'primitive: cone; radiusBottom: 0.5; radiusTop: 0; height: 0.5');
+      roof.setAttribute('material', 'color: #1976D2');
+      roof.setAttribute('position', '0 0.55 0');
+      building.appendChild(roof);
       break;
       
     case 'hospital':
-      building.setAttribute('geometry', 'primitive: box; width: 0.6; height: 0.8; depth: 0.6');
-      building.setAttribute('material', 'color: white');
+      building.setAttribute('geometry', 'primitive: box; width: 0.7; height: 0.9; depth: 0.7');
+      building.setAttribute('material', 'color: white; metalness: 0.2; roughness: 0.3');
+      // 赤十字
+      const cross = document.createElement('a-entity');
+      cross.setAttribute('geometry', 'primitive: box; width: 0.5; height: 0.1; depth: 0.05');
+      cross.setAttribute('material', 'color: red');
+      cross.setAttribute('position', '0 0 0.36');
+      building.appendChild(cross);
       break;
       
     case 'park':
-      building.setAttribute('geometry', 'primitive: cylinder; radius: 0.4; height: 0.1');
+      building.setAttribute('geometry', 'primitive: cylinder; radius: 0.6; height: 0.1');
       building.setAttribute('material', 'color: #4CAF50');
+      // 木
+      const tree = document.createElement('a-entity');
+      tree.setAttribute('geometry', 'primitive: cone; radiusBottom: 0.2; radiusTop: 0; height: 0.7');
+      tree.setAttribute('material', 'color: #2E7D32');
+      tree.setAttribute('position', '0 0.4 0');
+      building.appendChild(tree);
       break;
       
     case 'shop':
-      building.setAttribute('geometry', 'primitive: box; width: 0.6; height: 0.4; depth: 0.6');
-      building.setAttribute('material', 'color: #FF5722');
+      building.setAttribute('geometry', 'primitive: box; width: 0.7; height: 0.5; depth: 0.7');
+      building.setAttribute('material', 'color: #FF5722; metalness: 0.4; roughness: 0.2');
+      // 看板
+      const sign = document.createElement('a-entity');
+      sign.setAttribute('geometry', 'primitive: box; width: 0.8; height: 0.2; depth: 0.02');
+      sign.setAttribute('material', 'color: #FFC107');
+      sign.setAttribute('position', '0 0.6 0.36');
+      building.appendChild(sign);
       break;
       
     case 'power':
-      building.setAttribute('geometry', 'primitive: cylinder; radius: 0.3; height: 0.8');
-      building.setAttribute('material', 'color: #FFD700');
+      building.setAttribute('geometry', 'primitive: cylinder; radius: 0.4; height: 1.0');
+      building.setAttribute('material', 'color: #FFD700; metalness: 0.7; roughness: 0.2');
+      // 太陽光パネル
+      const panel = document.createElement('a-entity');
+      panel.setAttribute('geometry', 'primitive: box; width: 0.8; height: 0.05; depth: 0.8');
+      panel.setAttribute('material', 'color: #2C3E50');
+      panel.setAttribute('position', '0 0.6 0');
+      panel.setAttribute('rotation', '45 0 0');
+      building.appendChild(panel);
       break;
+  }
+  
+  // 影を追加
+  const shadow = document.createElement('a-entity');
+  shadow.setAttribute('geometry', 'primitive: circle; radius: 0.4');
+  shadow.setAttribute('material', 'color: #000; opacity: 0.3; shader: flat');
+  shadow.setAttribute('rotation', '-90 0 0');
+  shadow.setAttribute('position', '0 0.01 0');
+  building.appendChild(shadow);
+}
+
+function createParticleEffect() {
+  const container = document.querySelector('#buildings-container');
+  for (let i = 0; i < 6; i++) {
+    const particle = document.createElement('a-entity');
+    particle.setAttribute('geometry', 'primitive: sphere; radius: 0.02');
+    particle.setAttribute('material', 'color: #FFD700');
+    particle.setAttribute('position', '0 1 0');
+    particle.setAttribute('animation', {
+      property: 'position',
+      to: `${(Math.random()-0.5)*2} ${1+Math.random()*1} ${(Math.random()-0.5)*2}`,
+      dur: 600,
+      easing: 'easeOutQuad'
+    });
+    container.appendChild(particle);
+    setTimeout(() => {
+      if (particle.parentNode) particle.parentNode.removeChild(particle);
+    }, 600);
+  }
+}
+
+function checkMissionCompletion() {
+  const mission = missions[currentMission];
+  let completed = true;
+  
+  Object.keys(mission.target).forEach(target => {
+    if (sdgsStatus[target] < mission.target[target]) {
+      completed = false;
+    }
+  });
+  
+  if (completed && currentMission < missions.length - 1) {
+    const bonus = 100;
+    score += bonus;
+    showBuildMessage(`🎉 ミッションクリア！ +${bonus}ボーナス`, bonus, 0);
+    currentMission++;
+    updateMissionDisplay();
   }
 }
 
@@ -362,8 +558,49 @@ function updateSDGsDisplay() {
   });
 }
 
+function updateComboDisplay() {
+  const comboDisplay = document.getElementById('comboDisplay');
+  if (comboCount >= 2) {
+    comboDisplay.style.display = 'block';
+    document.getElementById('comboCount').textContent = comboCount;
+  } else {
+    comboDisplay.style.display = 'none';
+  }
+}
+
 function updateScore() {
   document.getElementById('score').textContent = score;
+}
+
+function showBuildMessage(text, points, comboBonus) {
+  const messageDiv = document.getElementById('message');
+  let bonusText = '';
+  
+  if (comboBonus > 0) {
+    bonusText = `<br>🔥 コンボボーナス +${comboBonus}点！`;
+  }
+  
+  // SDGs警告
+  let sdgsWarning = '';
+  if (sdgsStatus.energy < 20) {
+    sdgsWarning = '<br>⚡ エネルギー不足！発電所を建設しよう';
+  } else if (sdgsStatus.environment < 20) {
+    sdgsWarning = '<br>🌿 環境悪化！公園を増やそう';
+  }
+  
+  messageDiv.innerHTML = `
+    <h3 style="color: #FFD700;">${text}</h3>
+    <p style="font-size: 20px; margin: 10px 0; color: #4CAF50;">+${points} 点獲得！${bonusText}</p>
+    <p>コンボ: ${comboCount}回連続${sdgsWarning}</p>
+    <button class="ui-button" onclick="this.parentElement.style.display='none'" style="margin-top: 15px; background: linear-gradient(145deg, #FF5722, #E64A19);">OK</button>
+  `;
+  messageDiv.style.display = 'block';
+  
+  setTimeout(() => {
+    if (messageDiv.style.display !== 'none') {
+      messageDiv.style.display = 'none';
+    }
+  }, 2500);
 }
 
 function showMessage(text) {
@@ -378,18 +615,46 @@ function showMessage(text) {
 function endGame() {
   gameStarted = false;
   clearInterval(gameTimer);
-  
+  showGameResult();
+}
+
+function showGameResult() {
   const totalScore = score;
-  const avgSDGs = (sdgsStatus.energy + sdgsStatus.environment + sdgsStatus.economy) / 3;
+  const avgSDGs = (sdgsStatus.energy + sdgsStatus.environment + sdgsStatus.economy + sdgsStatus.education) / 4;
+  
+  // 技術レポート生成
+  const techReport = `
+    • フレームワーク: A-Frame + AR.js<br>
+    • AI最適化: 遺伝的アルゴリズム<br>
+    • データ処理: リアルタイムSDGs指標<br>
+    • 3Dレンダリング: WebGL + Three.js<br>
+    • 対応SDGs: 目標7,11,13
+  `;
   
   document.getElementById('message').innerHTML = `
-    <h2>🎊 ゲーム終了</h2>
-    <p>最終スコア: ${totalScore}点</p>
-    <p>SDGsバランス: ${Math.round(avgSDGs)}%</p>
-    <br>
-    <button class="ui-button" onclick="restartGame()" style="background:linear-gradient(145deg,#2196F3,#1976D2)">
-      もう一度遊ぶ
-    </button>
+    <div style="text-align: center;">
+      <h2 style="color: #FFD700; margin-bottom: 20px;">🎊 ゲーム終了 🎊</h2>
+      
+      <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin: 15px 0;">
+        <h3>🏆 最終スコア: ${totalScore}点</h3>
+        <p>SDGsバランス: ${Math.round(avgSDGs)}%</p>
+        <p>建設施設数: ${totalBuildings}個</p>
+        <p>最大コンボ: ${comboCount}回</p>
+        <p>達成ミッション: ${currentMission + 1}/${missions.length}</p>
+      </div>
+      
+      <div style="background: rgba(0,255,255,0.1); padding: 15px; border-radius: 10px; margin: 15px 0; text-align: left;">
+        <h4>🤖 技術実装レポート</h4>
+        <div style="font-size: 14px;">${techReport}</div>
+      </div>
+      
+      <p style="margin: 10px 0;">📸 この画面をスクリーンショット！</p>
+      <p style="margin-bottom: 20px;">🎓 ポートフォリオに活用しよう！</p>
+      
+      <button class="ui-button" onclick="restartGame()" style="background:linear-gradient(145deg,#2196F3,#1976D2); margin: 5px;">
+        もう一度遊ぶ
+      </button>
+    </div>
   `;
   document.getElementById('message').style.display = 'block';
 }
@@ -401,6 +666,17 @@ function restartGame() {
     container.removeChild(container.firstChild);
   }
   startGame();
+}
+
+function getBuildingName(type) {
+  const names = {
+    house: '住宅',
+    hospital: '病院', 
+    park: '公園',
+    shop: '店舗',
+    power: '発電所'
+  };
+  return names[type] || '建物';
 }
 
 // マーカー検出イベント
