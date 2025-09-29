@@ -2,89 +2,189 @@
 <html>
 <head>
   <title>AR街づくりゲーム</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <!-- 修正：新しいバージョンのAR.js -->
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+    .ui-button {
+      padding: 12px 20px;
+      margin: 5px;
+      font-size: 18px;
+      border: none;
+      border-radius: 25px;
+      background: rgba(255,255,255,0.9);
+      color: #333;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    .ui-button:active {
+      transform: scale(0.95);
+      background: rgba(200,200,200,0.9);
+    }
+  </style>
 </head>
-<body style="margin: 0; overflow: hidden;">
+<body>
 
 <!-- スコア表示 -->
-<div style="position: fixed; top: 10px; left: 10px; font-size: 24px; color: white; z-index: 10; background: rgba(0,0,0,0.7); padding: 10px;">
+<div style="position: fixed; top: 10px; left: 10px; font-size: 24px; color: white; z-index: 10; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
   スコア: <span id="score">0</span>
 </div>
 
 <!-- 建物選択ボタン -->
-<div style="position: fixed; bottom: 10px; left: 10px; z-index: 10;">
-  <button onclick="setBuilding('building1')" style="padding: 10px; margin: 5px; font-size: 16px;">住宅 (+5点)</button>
-  <button onclick="setBuilding('building2')" style="padding: 10px; margin: 5px; font-size: 16px;">病院 (+10点)</button>
+<div style="position: fixed; bottom: 20px; left: 0; right: 0; text-align: center; z-index: 10;">
+  <button class="ui-button" onclick="setBuilding('building1')">🏠 住宅 (+5点)</button>
+  <button class="ui-button" onclick="setBuilding('building2')">🏥 病院 (+10点)</button>
+</div>
+
+<!-- 操作説明 -->
+<div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 15px; z-index: 5; display: none;" id="instruction">
+  <h3>🎮 操作説明</h3>
+  <p>1. Hiroマーカーを映す</p>
+  <p>2. 下のボタンで建物を選択</p>
+  <p>3. スコアを貯めよう！</p>
+  <button class="ui-button" onclick="hideInstruction()">閉じる</button>
 </div>
 
 <a-scene 
   embedded 
-  arjs='sourceType: webcam; debugUIEnabled: false;'
+  arjs='sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;'
   vr-mode-ui="enabled: false"
-  renderer="logarithmicDepthBuffer: true;"
+  renderer="colorManagement: true; precision: high;"
+  light="defaultLightsEnabled: true;"
 >
+
+  <!-- 環境光 -->
+  <a-entity light="type: ambient; color: #888; intensity: 0.8"></a-entity>
+  <!-- 指向性ライト -->
+  <a-entity light="type: directional; color: #FFF; intensity: 0.8; position: 2 5 3"></a-entity>
+
   <!-- マーカー -->
   <a-marker preset="hiro" emitevents="true" id="marker">
+    <!-- 住宅モデル -->
     <a-entity 
-      id="building" 
-      geometry="primitive: box; width: 1; height: 1; depth: 1" 
-      material="color: red; metalness: 0.3; roughness: 0.7" 
+      id="building1-model"
+      geometry="primitive: box; width: 1; height: 1; depth: 1"
+      material="color: #3498db; metalness: 0.2; roughness: 0.5"
       position="0 0.5 0"
       scale="1 1 1"
+      visible="false"
     ></a-entity>
+    
+    <!-- 病院モデル -->
+    <a-entity 
+      id="building2-model"
+      geometry="primitive: cylinder; radius: 0.5; height: 1.5"
+      material="color: #2ecc71; metalness: 0.2; roughness: 0.5"
+      position="0 0.75 0"
+      scale="1 1 1"
+      visible="false"
+    ></a-entity>
+    
+    <!-- 初期モデル（赤い家） -->
+    <a-entity 
+      id="default-model"
+      geometry="primitive: box; width: 1; height: 1; depth: 1"
+      material="color: #e74c3c; metalness: 0.3; roughness: 0.4"
+      position="0 0.5 0"
+      scale="1 1 1"
+    >
+      <!-- 屋根を追加して家らしく -->
+      <a-entity
+        geometry="primitive: cone; radiusBottom: 0.8; radiusTop: 0; height: 0.6"
+        material="color: #c0392b"
+        position="0 0.8 0"
+        rotation="0 0 0"
+      ></a-entity>
+    </a-entity>
   </a-marker>
   
-  <a-entity camera></a-entity>
+  <a-entity camera position="0 1.6 0"></a-entity>
 </a-scene>
 
 <script>
 let score = 0;
+let currentBuilding = 'default';
+
+// ページ読み込み時に操作説明を表示
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => {
+    document.getElementById('instruction').style.display = 'block';
+  }, 1000);
+});
+
+function hideInstruction() {
+  document.getElementById('instruction').style.display = 'none';
+}
 
 function setBuilding(name) {
-  const building = document.querySelector('#building');
+  // すべてのモデルを非表示
+  document.getElementById('default-model').setAttribute('visible', 'false');
+  document.getElementById('building1-model').setAttribute('visible', 'false');
+  document.getElementById('building2-model').setAttribute('visible', 'false');
   
   if (name === 'building1') {
-    // 住宅 - 青い立方体
-    building.setAttribute('geometry', {
-      primitive: 'box',
-      width: 1,
-      height: 1,
-      depth: 1
-    });
-    building.setAttribute('material', {
-      color: 'blue',
-      metalness: 0.3,
-      roughness: 0.7
-    });
+    // 住宅 - 青い家（屋根付き）
+    document.getElementById('building1-model').setAttribute('visible', 'true');
+    // 住宅に屋根を追加
+    const house = document.getElementById('building1-model');
+    if (!house.querySelector('.roof')) {
+      const roof = document.createElement('a-entity');
+      roof.setAttribute('geometry', 'primitive: cone; radiusBottom: 0.8; radiusTop: 0; height: 0.6');
+      roof.setAttribute('material', 'color: #2980b9');
+      roof.setAttribute('position', '0 0.8 0');
+      roof.setAttribute('class', 'roof');
+      house.appendChild(roof);
+    }
     score += 5;
+    currentBuilding = 'building1';
+    
   } else if (name === 'building2') {
-    // 病院 - 緑の円柱
-    building.setAttribute('geometry', {
-      primitive: 'cylinder',
-      radius: 0.5,
-      height: 1
-    });
-    building.setAttribute('material', {
-      color: 'green',
-      metalness: 0.3,
-      roughness: 0.7
-    });
+    // 病院 - 緑のタワー（複数の円柱で表現）
+    document.getElementById('building2-model').setAttribute('visible', 'true');
+    const hospital = document.getElementById('building2-model');
+    
+    // 病院に十字マークを追加
+    if (!hospital.querySelector('.cross')) {
+      const cross = document.createElement('a-entity');
+      cross.setAttribute('geometry', 'primitive: box; width: 0.1; height: 0.6; depth: 0.1');
+      cross.setAttribute('material', 'color: white');
+      cross.setAttribute('position', '0 1.2 0');
+      cross.setAttribute('class', 'cross');
+      
+      const cross2 = document.createElement('a-entity');
+      cross2.setAttribute('geometry', 'primitive: box; width: 0.6; height: 0.1; depth: 0.1');
+      cross2.setAttribute('material', 'color: white');
+      cross2.setAttribute('position', '0 1.2 0');
+      cross2.setAttribute('class', 'cross');
+      
+      hospital.appendChild(cross);
+      hospital.appendChild(cross2);
+    }
     score += 10;
+    currentBuilding = 'building2';
   }
   
   document.getElementById('score').innerText = score;
   console.log('建物変更:', name, 'スコア:', score);
 }
 
-// デバッグ用：マーカー検出時の確認
+// スマホでのタッチイベント対策
+document.addEventListener('touchstart', function(e) {
+  e.preventDefault();
+}, { passive: false });
+
+// マーカー検出時の処理
 document.querySelector('#marker').addEventListener('markerFound', function() {
-  console.log('🎯 マーカーを検出！建物を配置できます');
+  console.log('🎯 マーカー検出！');
 });
 
 document.querySelector('#marker').addEventListener('markerLost', function() {
-  console.log('❌ マーカーを見失いました');
+  console.log('❌ マーカー消失');
 });
 </script>
 
