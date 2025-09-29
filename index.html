@@ -8,21 +8,34 @@
 <body style="margin: 0; overflow: hidden;">
 
 <!-- スコア表示 -->
-<div style="position: fixed; top: 10px; left: 10px; font-size: 24px; color: white; z-index: 10;">
+<div style="position: fixed; top: 10px; left: 10px; font-size: 24px; color: white; z-index: 10; background: rgba(0,0,0,0.5); padding: 10px;">
   スコア: <span id="score">0</span>
 </div>
 
 <!-- 建物選択ボタン -->
 <div style="position: fixed; bottom: 10px; left: 10px; z-index: 10;">
-  <button onclick="setBuilding('building1')">住宅</button>
-  <button onclick="setBuilding('building2')">病院</button>
+  <button onclick="setBuilding('building1')" style="padding: 10px; margin: 5px;">住宅</button>
+  <button onclick="setBuilding('building2')" style="padding: 10px; margin: 5px;">病院</button>
 </div>
 
-<a-scene embedded arjs>
+<a-scene 
+  embedded 
+  arjs="sourceType: webcam; debugUIEnabled: false;"
+  renderer="logarithmicDepthBuffer: true;"
+  vr-mode-ui="enabled: false"
+>
   <!-- マーカー -->
-  <a-marker preset="hiro">
-    <a-entity id="building" geometry="primitive: box" material="color: red;" position="0 0.5 0"></a-entity>
+  <a-marker type="pattern" preset="custom" url="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/data/patt.iro">
+    <a-entity 
+      id="building" 
+      geometry="primitive: box; width: 1; height: 1; depth: 1" 
+      material="color: red; metalness: 0.5; roughness: 0.5" 
+      position="0 0.5 0"
+      scale="1 1 1"
+    ></a-entity>
   </a-marker>
+  
+  <!-- カメラ -->
   <a-entity camera></a-entity>
 </a-scene>
 
@@ -31,17 +44,46 @@ let score = 0;
 
 function setBuilding(name) {
   const building = document.querySelector('#building');
+  console.log('建物設定:', name, building);
+  
   if (name === 'building1') {
-    building.setAttribute('geometry', 'primitive: box');
-    building.setAttribute('material', 'color: blue');
+    building.setAttribute('geometry', {
+      primitive: 'box',
+      width: 1,
+      height: 1,
+      depth: 1
+    });
+    building.setAttribute('material', {
+      color: 'blue',
+      metalness: 0.3,
+      roughness: 0.7
+    });
     score += 5;
   } else if (name === 'building2') {
-    building.setAttribute('geometry', 'primitive: cylinder');
-    building.setAttribute('material', 'color: green');
+    building.setAttribute('geometry', {
+      primitive: 'cylinder',
+      radius: 0.5,
+      height: 1
+    });
+    building.setAttribute('material', {
+      color: 'green',
+      metalness: 0.3,
+      roughness: 0.7
+    });
     score += 10;
   }
+  
   document.getElementById('score').innerText = score;
+  console.log('スコア更新:', score);
 }
+
+// デバッグ用：シーン読み込み完了時の確認
+document.querySelector('a-scene').addEventListener('loaded', function() {
+  console.log('シーンが読み込まれました');
+  const building = document.querySelector('#building');
+  console.log('建物要素:', building);
+  console.log('建物の位置:', building.getAttribute('position'));
+});
 </script>
 
 </body>
