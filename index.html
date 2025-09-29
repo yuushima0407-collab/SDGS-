@@ -1,13 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>AIスマートシティ・チャレンジ - 未来の街を5分でデザイン！</title>
+  <title>AIスマートシティ・チャレンジ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <!-- 安定版AR.js -->
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
-  <!-- QRコード生成ライブラリ -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <style>
     * {
       margin: 0;
@@ -52,9 +49,6 @@
     .ui-button.power {
       background: linear-gradient(145deg, #FFD700, #FFC107);
     }
-    .ui-button.ai {
-      background: linear-gradient(145deg, #E91E63, #C2185B);
-    }
     .score-display {
       position: fixed;
       top: 20px;
@@ -66,7 +60,6 @@
       padding: 15px;
       border-radius: 10px;
       border: 2px solid #fff;
-      text-shadow: 0 0 10px rgba(255,255,255,0.5);
     }
     .controls {
       position: fixed;
@@ -93,13 +86,12 @@
       z-index: 200;
       border: 3px solid #FFD700;
       max-width: 90%;
-      box-shadow: 0 0 30px rgba(255,215,0,0.5);
     }
     .sdgs-display {
       position: fixed;
       top: 100px;
       left: 20px;
-      background: rgba(0,0,0,0.9);
+      background: rgba(0,0,0,0.8);
       padding: 15px;
       border-radius: 10px;
       color: white;
@@ -107,31 +99,27 @@
       border: 2px solid #4CAF50;
     }
     .sdgs-item {
-      margin: 8px 0;
+      margin: 5px 0;
       font-size: 14px;
-      display: flex;
-      justify-content: space-between;
-      min-width: 150px;
     }
     .mission-display {
       position: fixed;
       top: 250px;
       left: 20px;
-      background: rgba(0,0,0,0.9);
+      background: rgba(0,0,0,0.8);
       color: white;
       padding: 15px;
       border-radius: 10px;
       border: 2px solid #FF9800;
       z-index: 90;
-      min-width: 280px;
+      max-width: 250px;
     }
     .timer {
-      font-size: 24px;
+      font-size: 20px;
       font-weight: bold;
       color: #FFD700;
       text-align: center;
-      margin: 10px 0;
-      text-shadow: 0 0 10px rgba(255,215,0,0.5);
+      margin: 8px 0;
     }
     .debug-info {
       position: fixed;
@@ -144,87 +132,6 @@
       font-size: 12px;
       z-index: 90;
     }
-    .combo-display {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: rgba(255,215,0,0.9);
-      color: black;
-      padding: 10px 15px;
-      border-radius: 10px;
-      font-size: 18px;
-      font-weight: bold;
-      z-index: 100;
-    }
-    .ai-dashboard {
-      position: fixed;
-      top: 400px;
-      left: 20px;
-      background: rgba(75,0,130,0.9);
-      color: white;
-      padding: 15px;
-      border-radius: 10px;
-      border: 2px solid #9C27B0;
-      z-index: 90;
-      min-width: 280px;
-    }
-    .ai-metric {
-      margin: 5px 0;
-      font-size: 13px;
-      padding: 5px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 5px;
-    }
-    .portfolio-output {
-      position: fixed;
-      bottom: 180px;
-      right: 20px;
-      background: rgba(0,100,0,0.9);
-      color: white;
-      padding: 15px;
-      border-radius: 10px;
-      border: 2px solid #4CAF50;
-      z-index: 90;
-      max-width: 250px;
-    }
-    .tech-badge {
-      display: inline-block;
-      background: linear-gradient(145deg, #FF5722, #E64A19);
-      padding: 5px 10px;
-      border-radius: 10px;
-      font-size: 12px;
-      margin: 2px;
-    }
-    .qrcode-container {
-      background: white;
-      padding: 10px;
-      border-radius: 10px;
-      margin: 10px 0;
-      display: inline-block;
-    }
-    .progress-container {
-      background: rgba(255,255,255,0.2);
-      border-radius: 5px;
-      margin: 10px 0;
-      overflow: hidden;
-      height: 10px;
-    }
-    .progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, #4CAF50, #FFD700);
-      transition: width 0.3s;
-      width: 100%;
-    }
-    .achievement {
-      display: inline-block;
-      background: linear-gradient(145deg, #FFD700, #FF9800);
-      color: black;
-      padding: 5px 10px;
-      border-radius: 15px;
-      font-size: 12px;
-      margin: 2px;
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
@@ -234,51 +141,17 @@
   🏆 スコア: <span id="score">0</span>
 </div>
 
-<!-- コンボ表示 -->
-<div class="combo-display" id="comboDisplay" style="display: none;">
-  🔥 コンボ: <span id="comboCount">0</span>
-</div>
-
 <!-- SDGS表示 -->
 <div class="sdgs-display">
   <div class="sdgs-item" id="energy">⚡ エネルギー: <span>50%</span></div>
   <div class="sdgs-item" id="environment">🌿 環境: <span>70%</span></div>
   <div class="sdgs-item" id="economy">💰 経済: <span>30%</span></div>
-  <div class="sdgs-item" id="education">📚 教育: <span>60%</span></div>
 </div>
 
 <!-- ミッション表示 -->
 <div class="mission-display">
-  <div style="font-weight: bold; margin-bottom: 8px;">🎯 ミッション</div>
-  <div id="missionTitle">エネルギー基盤を確立</div>
-  <div class="timer" id="gameTimer">⏱️ 05:00</div>
-  <div class="progress-container">
-    <div class="progress-bar" id="missionProgress" style="width: 100%"></div>
-  </div>
-  <div id="missionDescription" style="font-size: 12px; margin-top: 8px;">発電所を建設して電力供給を確保せよ！</div>
-</div>
-
-<!-- AIダッシュボード -->
-<div class="ai-dashboard">
-  <div style="font-weight: bold; margin-bottom: 8px;">🤖 AI都市分析</div>
-  <div class="ai-metric" id="energyEff">⚡ エネルギー効率: 計算中...</div>
-  <div class="ai-metric" id="envScore">🌿 環境スコア: 計算中...</div>
-  <div class="ai-metric" id="aiRecommendation">💡 AI提案: 分析中...</div>
-  <button class="ui-button ai" onclick="executeAIOptimization()" style="width: 100%; margin-top: 10px; font-size: 14px;">
-    AI最適化を実行
-  </button>
-</div>
-
-<!-- ポートフォリオ出力 -->
-<div class="portfolio-output" id="portfolioOutput" style="display: none;">
-  <div style="font-weight: bold; margin-bottom: 8px;">🎓 技術レポート</div>
-  <div id="techReport" style="font-size: 12px; margin-bottom: 10px;"></div>
-  <div class="qrcode-container">
-    <canvas id="qrcodeCanvas"></canvas>
-  </div>
-  <button class="ui-button" onclick="savePortfolio()" style="width: 100%; font-size: 14px; background: linear-gradient(145deg, #2196F3, #1976D2);">
-    レポートを保存
-  </button>
+  <div>🎯 <span id="missionTitle">エネルギー基盤を確立</span></div>
+  <div class="timer" id="gameTimer">⏱️ 03:00</div>
 </div>
 
 <!-- デバッグ情報 -->
@@ -288,35 +161,19 @@
 
 <!-- 建物選択ボタン -->
 <div class="controls">
-  <button class="ui-button" onclick="placeBuilding('house')">🏠 住宅</button>
-  <button class="ui-button hospital" onclick="placeBuilding('hospital')">🏥 病院</button>
-  <button class="ui-button park" onclick="placeBuilding('park')">🌳 公園</button>
-  <button class="ui-button shop" onclick="placeBuilding('shop')">🏪 店舗</button>
-  <button class="ui-button power" onclick="placeBuilding('power')">⚡ 発電所</button>
+  <button class="ui-button" id="houseBtn">🏠 住宅</button>
+  <button class="ui-button hospital" id="hospitalBtn">🏥 病院</button>
+  <button class="ui-button park" id="parkBtn">🌳 公園</button>
+  <button class="ui-button shop" id="shopBtn">🏪 店舗</button>
+  <button class="ui-button power" id="powerBtn">⚡ 発電所</button>
 </div>
 
 <!-- メッセージ表示 -->
 <div class="message" id="message">
-  <h2 style="color: #FFD700; margin-bottom: 15px;">🏗️ AIスマートシティ・チャレンジ</h2>
-  <p>未来の街を<strong>5分</strong>でデザイン！</p>
-  <p>AIが最適な都市計画をアドバイス</p>
+  <h2>🏗️ AIスマートシティ建設</h2>
+  <p>Hiroマーカーを映してスタート！</p>
   <br>
-  <p>🤖 AI最適化アルゴリズム搭載</p>
-  <p>📊 リアルタイム都市分析</p>
-  <p>🎓 ポートフォリオ連携機能</p>
-  <br>
-  <p>📱 Hiroマーカーを映してスタート！</p>
-  <br>
-  <button class="ui-button" onclick="startGame()" style="background:linear-gradient(145deg,#FFD700,#FF9800); font-size: 18px; padding: 15px 30px;">
-    🚀 ゲームスタート！
-  </button>
-  <div style="margin-top: 15px;">
-    <span class="tech-badge">A-Frame</span>
-    <span class="tech-badge">AR.js</span>
-    <span class="tech-badge">AIアルゴリズム</span>
-    <span class="tech-badge">SDGs</span>
-    <span class="tech-badge">IoTシミュレーション</span>
-  </div>
+  <button class="ui-button" id="startBtn" style="background:linear-gradient(145deg,#FFD700,#FF9800)">ゲームスタート</button>
 </div>
 
 <a-scene 
@@ -324,12 +181,7 @@
   arjs='sourceType: webcam; debugUIEnabled: false;'
   vr-mode-ui="enabled: false"
   renderer="colorManagement: true;"
-  light="defaultLightsEnabled: true;"
 >
-
-  <!-- ライティング -->
-  <a-entity light="type: ambient; color: #888; intensity: 0.8"></a-entity>
-  <a-entity light="type: directional; color: #FFF; intensity: 0.9; position: 2 5 3"></a-entity>
 
   <!-- マーカー -->
   <a-marker preset="hiro" id="marker">
@@ -337,10 +189,10 @@
     <a-plane 
       position="0 0 0" 
       rotation="-90 0 0" 
-      width="4" 
-      height="4" 
+      width="3" 
+      height="3" 
       color="#7CFC00"
-      opacity="0.3"
+      opacity="0.2"
     ></a-plane>
     
     <!-- 建物コンテナ -->
@@ -351,159 +203,52 @@
 </a-scene>
 
 <script>
-// ゲーム状態管理
+// ゲーム状態
 let score = 0;
-let comboCount = 0;
-let lastPlaceTime = 0;
-let totalBuildings = 0;
-let isMarkerVisible = false;
-let gameTime = 300; // 5分
+let gameTime = 180;
 let gameTimer;
 let gameStarted = false;
-let currentMission = 0;
-let achievements = [];
+let isMarkerVisible = false;
 
 // SDGS状態
 let sdgsStatus = {
   energy: 50,
   environment: 70, 
-  economy: 30,
-  education: 60
+  economy: 30
 };
 
 // 施設効果
 const buildingEffects = {
-  house: { economy: 10, energy: -5, environment: -3 },
-  hospital: { economy: 8, education: 15, energy: -8 },
-  park: { environment: 20, energy: -3, economy: -2 },
-  shop: { economy: 15, environment: -8, energy: -5 },
-  power: { energy: 25, environment: -10, economy: 5 }
+  house: { economy: 8, energy: -3 },
+  hospital: { economy: 5, energy: -5 },
+  park: { environment: 15, energy: -2 },
+  shop: { economy: 12, environment: -5 },
+  power: { energy: 20, environment: -8 }
 };
 
-// ミッション定義
-const missions = [
-  {
-    title: "⚡ エネルギー基盤の確立",
-    description: "発電所を建設して電力供給を確保せよ！",
-    target: { energy: 70 },
-    timeLimit: 120
-  },
-  {
-    title: "🌿 環境バランスの改善", 
-    description: "環境とエネルギーのバランスを取れ！",
-    target: { environment: 60, energy: 50 },
-    timeLimit: 180
-  },
-  {
-    title: "🏗️ 総合スマートシティ",
-    description: "AI最適化で持続可能な都市を完成させよ！",
-    target: { economy: 60, education: 70, environment: 50 },
-    timeLimit: 240
-  }
-];
-
-// AI最適化システム（ポートフォリオ用）
-class SmartCityAI {
-  constructor() {
-    this.algorithm = "遺伝的アルゴリズム + 線形計画法";
-    this.optimizationHistory = [];
-    this.efficiencyScore = 0;
-  }
-  
-  analyzeCityStatus(sdgsStatus) {
-    const energyEfficiency = this.calculateEnergyEfficiency(sdgsStatus);
-    const environmentalScore = this.calculateEnvironmentalScore(sdgsStatus);
-    const economicPotential = this.calculateEconomicPotential(sdgsStatus);
-    
-    const analysis = {
-      energyEfficiency: Math.round(energyEfficiency),
-      environmentalScore: Math.round(environmentalScore),
-      economicPotential: Math.round(economicPotential),
-      overallEfficiency: Math.round((energyEfficiency + environmentalScore + economicPotential) / 3),
-      recommendations: this.generateRecommendations(sdgsStatus),
-      algorithm: this.algorithm,
-      timestamp: new Date().toISOString()
-    };
-    
-    this.optimizationHistory.push(analysis);
-    this.efficiencyScore = analysis.overallEfficiency;
-    return analysis;
-  }
-  
-  calculateEnergyEfficiency(status) {
-    return (status.energy * 0.6 + (100 - Math.abs(status.energy - status.environment)) * 0.4);
-  }
-  
-  calculateEnvironmentalScore(status) {
-    return (status.environment * 0.7 + (100 - Math.abs(status.environment - status.economy)) * 0.3);
-  }
-  
-  calculateEconomicPotential(status) {
-    return (status.economy * 0.5 + status.education * 0.3 + (100 - Math.abs(status.economy - status.energy)) * 0.2);
-  }
-  
-  generateRecommendations(status) {
-    const recommendations = [];
-    
-    if (status.energy < 40) {
-      recommendations.push("⚡ エネルギー危機！発電所を緊急建設せよ");
-    }
-    if (status.environment < 45) {
-      recommendations.push("🌿 環境悪化！公園で緑地を増やせ");
-    }
-    if (status.economy < 50) {
-      recommendations.push("💰 経済停滞！商業施設で雇用創出を");
-    }
-    if (status.education < 55) {
-      recommendations.push("📚 教育不足！学校・病院で人材育成を");
-    }
-    
-    if (recommendations.length === 0) {
-      recommendations.push("🎉 バランス良好！現在の開発を継続せよ");
-    }
-    
-    return recommendations;
-  }
-  
-  getEfficiencyScore() {
-    return this.efficiencyScore;
-  }
-  
-  getOptimizationHistory() {
-    return this.optimizationHistory;
-  }
-}
-
-const cityAI = new SmartCityAI();
-
-// ゲーム開始
+// ゲーム開始関数
 function startGame() {
-  if (!isMarkerVisible) {
-    showMessage('❌ まずはHiroマーカーを映してください！');
-    return;
-  }
+  console.log('🎮 startGame関数が呼ばれました！');
+  
+  // マーカー確認を一時的に外してテスト
+  // if (!isMarkerVisible) {
+  //   showMessage('❌ まずはHiroマーカーを映してください！');
+  //   return;
+  // }
   
   document.getElementById('message').style.display = 'none';
   score = 0;
-  comboCount = 0;
-  totalBuildings = 0;
-  gameTime = 300;
+  gameTime = 180;
   gameStarted = true;
-  currentMission = 0;
-  achievements = [];
   
   // 状態リセット
-  sdgsStatus = { energy: 50, environment: 70, economy: 30, education: 60 };
+  sdgsStatus = { energy: 50, environment: 70, economy: 30 };
   
   updateScore();
   updateSDGsDisplay();
-  updateMissionDisplay();
   startGameTimer();
-  updateComboDisplay();
-  updateAIDashboard();
   
-  // 初期演出
-  createHologramCity();
+  console.log('✅ ゲーム開始成功');
 }
 
 function startGameTimer() {
@@ -513,18 +258,8 @@ function startGameTimer() {
       gameTime--;
       updateTimerDisplay();
       
-      // ミッションプログレス更新
-      const mission = missions[currentMission];
-      const progress = (gameTime / 300) * 100;
-      document.getElementById('missionProgress').style.width = progress + '%';
-      
       if (gameTime <= 0) {
         endGame();
-      }
-      
-      // 30秒ごとにAI分析更新
-      if (gameTime % 30 === 0) {
-        updateAIDashboard();
       }
     }
   }, 1000);
@@ -533,46 +268,24 @@ function startGameTimer() {
 function updateTimerDisplay() {
   const minutes = Math.floor(gameTime / 60);
   const seconds = gameTime % 60;
-  const timerElement = document.getElementById('gameTimer');
-  timerElement.textContent = `⏱️ ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  
-  // 残り1分で色を赤く
-  if (gameTime <= 60) {
-    timerElement.style.color = '#FF4444';
-  }
-}
-
-function updateMissionDisplay() {
-  const mission = missions[currentMission];
-  document.getElementById('missionTitle').textContent = mission.title;
-  document.getElementById('missionDescription').textContent = mission.description;
+  document.getElementById('gameTimer').textContent = 
+    `⏱️ ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
 // 建物を配置
 function placeBuilding(type) {
-  if (!gameStarted || !isMarkerVisible) {
-    showMessage('❌ ゲームをスタートしてください！');
+  console.log('🏗️ 建物建設:', type);
+  
+  if (!gameStarted) {
+    showMessage('❌ まずはゲームをスタートしてください！');
     return;
   }
   
   const container = document.querySelector('#buildings-container');
   if (!container) return;
 
-  // コンボ判定
-  const now = Date.now();
-  if (now - lastPlaceTime < 2000) { // 2秒以内ならコンボ
-    comboCount++;
-  } else {
-    comboCount = 1;
-  }
-  
-  // スコア計算（コンボボーナス付き）
-  const baseScore = 10;
-  const comboBonus = Math.floor(comboCount / 3) * 5;
-  const totalPoints = baseScore + comboBonus;
-  
-  score += totalPoints;
-  totalBuildings++;
+  // スコア加算
+  score += 10;
   
   // SDGs効果を適用
   if (buildingEffects[type]) {
@@ -584,249 +297,63 @@ function placeBuilding(type) {
   
   // 建物を作成
   const building = document.createElement('a-entity');
-  setupBuilding(building, type, totalBuildings);
+  setupBuilding(building, type);
   container.appendChild(building);
   
-  // アニメーションとエフェクト
+  // アニメーション
   building.setAttribute('scale', '0.1 0.1 0.1');
   building.setAttribute('animation', {
     property: 'scale',
     to: '1 1 1',
-    dur: 800,
+    dur: 600,
     easing: 'easeOutElastic'
   });
   
-  // コンボエフェクト
-  if (comboBonus > 0) {
-    createParticleEffect();
-    checkAchievement('combo');
-  }
-  
-  // メッセージ表示
-  showBuildMessage(`🏗️ ${getBuildingName(type)} 完成！`, totalPoints, comboBonus);
-  
   updateScore();
   updateSDGsDisplay();
-  updateComboDisplay();
-  updateAIDashboard();
-  checkMissionCompletion();
-  checkAchievements();
-  lastPlaceTime = now;
   
-  // 15秒後に建物を削除
+  console.log('✅ 建物建設成功:', type);
+  
+  // 10秒後に建物を削除
   setTimeout(() => {
     if (building.parentNode) {
       building.parentNode.removeChild(building);
     }
-  }, 15000);
+  }, 10000);
 }
 
-function setupBuilding(building, type, index) {
-  // 円形に配置
-  const angle = (index * 137.5) % 360;
-  const radius = 1.2 + Math.floor((index - 1) / 6) * 0.6;
-  const x = Math.cos(angle * Math.PI / 180) * radius;
-  const z = Math.sin(angle * Math.PI / 180) * radius;
+function setupBuilding(building, type) {
+  // ランダムな位置に配置
+  const x = (Math.random() - 0.5) * 2;
+  const z = (Math.random() - 0.5) * 2;
   
   building.setAttribute('position', `${x} 0 ${z}`);
   
-  // 光るエフェクト用マテリアル
-  const glowMaterial = 'metalness: 0.8; roughness: 0.1; emissive: #FFFFFF; emissiveIntensity: 0.3';
-  
   switch(type) {
     case 'house':
-      building.setAttribute('geometry', 'primitive: box; width: 0.6; height: 0.6; depth: 0.6');
-      building.setAttribute('material', `color: #2196F3; ${glowMaterial}`);
-      // 屋根
-      const roof = document.createElement('a-entity');
-      roof.setAttribute('geometry', 'primitive: cone; radiusBottom: 0.5; radiusTop: 0; height: 0.5');
-      roof.setAttribute('material', 'color: #1976D2');
-      roof.setAttribute('position', '0 0.55 0');
-      building.appendChild(roof);
+      building.setAttribute('geometry', 'primitive: box; width: 0.5; height: 0.5; depth: 0.5');
+      building.setAttribute('material', 'color: #2196F3');
       break;
       
     case 'hospital':
-      building.setAttribute('geometry', 'primitive: box; width: 0.7; height: 0.9; depth: 0.7');
-      building.setAttribute('material', `color: white; ${glowMaterial}`);
-      // 赤十字
-      const cross = document.createElement('a-entity');
-      cross.setAttribute('geometry', 'primitive: box; width: 0.5; height: 0.1; depth: 0.05');
-      cross.setAttribute('material', 'color: red; emissive: #FF0000; emissiveIntensity: 0.5');
-      cross.setAttribute('position', '0 0 0.36');
-      building.appendChild(cross);
+      building.setAttribute('geometry', 'primitive: box; width: 0.6; height: 0.8; depth: 0.6');
+      building.setAttribute('material', 'color: white');
       break;
       
     case 'park':
-      building.setAttribute('geometry', 'primitive: cylinder; radius: 0.6; height: 0.1');
-      building.setAttribute('material', `color: #4CAF50; ${glowMaterial}`);
-      // 木
-      const tree = document.createElement('a-entity');
-      tree.setAttribute('geometry', 'primitive: cone; radiusBottom: 0.2; radiusTop: 0; height: 0.7');
-      tree.setAttribute('material', 'color: #2E7D32; emissive: #00FF00; emissiveIntensity: 0.2');
-      tree.setAttribute('position', '0 0.4 0');
-      building.appendChild(tree);
+      building.setAttribute('geometry', 'primitive: cylinder; radius: 0.4; height: 0.1');
+      building.setAttribute('material', 'color: #4CAF50');
       break;
       
     case 'shop':
-      building.setAttribute('geometry', 'primitive: box; width: 0.7; height: 0.5; depth: 0.7');
-      building.setAttribute('material', `color: #FF5722; ${glowMaterial}`);
-      // 看板
-      const sign = document.createElement('a-entity');
-      sign.setAttribute('geometry', 'primitive: box; width: 0.8; height: 0.2; depth: 0.02');
-      sign.setAttribute('material', 'color: #FFC107; emissive: #FFFF00; emissiveIntensity: 0.4');
-      sign.setAttribute('position', '0 0.6 0.36');
-      building.appendChild(sign);
+      building.setAttribute('geometry', 'primitive: box; width: 0.6; height: 0.4; depth: 0.6');
+      building.setAttribute('material', 'color: #FF5722');
       break;
       
     case 'power':
-      building.setAttribute('geometry', 'primitive: cylinder; radius: 0.4; height: 1.0');
-      building.setAttribute('material', `color: #FFD700; ${glowMaterial}`);
-      // 太陽光パネル
-      const panel = document.createElement('a-entity');
-      panel.setAttribute('geometry', 'primitive: box; width: 0.8; height: 0.05; depth: 0.8');
-      panel.setAttribute('material', 'color: #2C3E50; emissive: #0000FF; emissiveIntensity: 0.3');
-      panel.setAttribute('position', '0 0.6 0');
-      panel.setAttribute('rotation', '45 0 0');
-      building.appendChild(panel);
+      building.setAttribute('geometry', 'primitive: cylinder; radius: 0.3; height: 0.8');
+      building.setAttribute('material', 'color: #FFD700');
       break;
-  }
-  
-  // 影を追加
-  const shadow = document.createElement('a-entity');
-  shadow.setAttribute('geometry', 'primitive: circle; radius: 0.4');
-  shadow.setAttribute('material', 'color: #000; opacity: 0.3; shader: flat');
-  shadow.setAttribute('rotation', '-90 0 0');
-  shadow.setAttribute('position', '0 0.01 0');
-  building.appendChild(shadow);
-}
-
-function createHologramCity() {
-  const container = document.querySelector('#buildings-container');
-  // 未来都市的なホログラムエフェクト
-  const hologram = document.createElement('a-entity');
-  hologram.setAttribute('geometry', 'primitive: cylinder; radius: 1.5; height: 0.1');
-  hologram.setAttribute('material', 'color: #00FFFF; opacity: 0.3; transparent: true');
-  hologram.setAttribute('position', '0 0.05 0');
-  hologram.setAttribute('animation', {
-    property: 'material.opacity',
-    from: '0.1',
-    to: '0.5',
-    dur: '2000',
-    loop: true,
-    dir: 'alternate'
-  });
-  container.appendChild(hologram);
-  
-  setTimeout(() => {
-    if (hologram.parentNode) hologram.parentNode.removeChild(hologram);
-  }, 5000);
-}
-
-function createParticleEffect() {
-  const container = document.querySelector('#buildings-container');
-  for (let i = 0; i < 8; i++) {
-    const particle = document.createElement('a-entity');
-    particle.setAttribute('geometry', 'primitive: sphere; radius: 0.02');
-    particle.setAttribute('material', 'color: #FFD700; emissive: #FFFF00; emissiveIntensity: 1.0');
-    particle.setAttribute('position', '0 1 0');
-    particle.setAttribute('animation', {
-      property: 'position',
-      to: `${(Math.random()-0.5)*2} ${1+Math.random()*1} ${(Math.random()-0.5)*2}`,
-      dur: 800,
-      easing: 'easeOutQuad'
-    });
-    container.appendChild(particle);
-    setTimeout(() => {
-      if (particle.parentNode) particle.parentNode.removeChild(particle);
-    }, 800);
-  }
-}
-
-function updateAIDashboard() {
-  const analysis = cityAI.analyzeCityStatus(sdgsStatus);
-  
-  document.getElementById('energyEff').textContent = `⚡ エネルギー効率: ${analysis.energyEfficiency}%`;
-  document.getElementById('envScore').textContent = `🌿 環境スコア: ${analysis.environmentalScore}%`;
-  document.getElementById('aiRecommendation').textContent = `💡 AI提案: ${analysis.recommendations[0]}`;
-}
-
-function executeAIOptimization() {
-  if (!gameStarted) return;
-  
-  const analysis = cityAI.analyzeCityStatus(sdgsStatus);
-  const bestBuilding = getOptimalBuilding();
-  
-  showBuildMessage(`🤖 AI最適化実行！ ${bestBuilding.name}を推奨`, 0, 0);
-  placeBuilding(bestBuilding.type);
-  
-  // AI使用実績
-  checkAchievement('ai');
-}
-
-function getOptimalBuilding() {
-  const analysis = cityAI.analyzeCityStatus(sdgsStatus);
-  const recommendation = analysis.recommendations[0];
-  
-  if (recommendation.includes('発電所')) return { type: 'power', name: '発電所' };
-  if (recommendation.includes('公園')) return { type: 'park', name: '公園' };
-  if (recommendation.includes('商業施設')) return { type: 'shop', name: '店舗' };
-  if (recommendation.includes('学校') || recommendation.includes('病院')) return { type: 'hospital', name: '病院' };
-  
-  return { type: 'house', name: '住宅' };
-}
-
-function checkMissionCompletion() {
-  const mission = missions[currentMission];
-  let completed = true;
-  
-  Object.keys(mission.target).forEach(target => {
-    if (sdgsStatus[target] < mission.target[target]) {
-      completed = false;
-    }
-  });
-  
-  if (completed && currentMission < missions.length - 1) {
-    const bonus = 150;
-    score += bonus;
-    showBuildMessage(`🎉 ミッションクリア！ +${bonus}ボーナス`, bonus, 0);
-    currentMission++;
-    updateMissionDisplay();
-    checkAchievement('mission');
-  }
-}
-
-function checkAchievements() {
-  if (score >= 500 && !achievements.includes('high_score')) {
-    achievements.push('high_score');
-    showBuildMessage('🏆 実績: ハイスコアマスター', 0, 0);
-  }
-  
-  if (totalBuildings >= 20 && !achievements.includes('builder')) {
-    achievements.push('builder');
-    showBuildMessage('🏗️ 実績: 建設マスター', 0, 0);
-  }
-  
-  const avgSDGs = (sdgsStatus.energy + sdgsStatus.environment + sdgsStatus.economy + sdgsStatus.education) / 4;
-  if (avgSDGs >= 80 && !achievements.includes('balance')) {
-    achievements.push('balance');
-    showBuildMessage('⚖️ 実績: バランスマスター', 0, 0);
-  }
-}
-
-function checkAchievement(type) {
-  if (type === 'combo' && comboCount >= 5 && !achievements.includes('combo')) {
-    achievements.push('combo');
-    showBuildMessage('🔥 実績: コンボマスター', 0, 0);
-  }
-  
-  if (type === 'ai' && !achievements.includes('ai_user')) {
-    achievements.push('ai_user');
-    showBuildMessage('🤖 実績: AIパイオニア', 0, 0);
-  }
-  
-  if (type === 'mission' && currentMission === missions.length - 1 && !achievements.includes('mission_complete')) {
-    achievements.push('mission_complete');
-    showBuildMessage('🎯 実績: ミッションコンプリート', 0, 0);
   }
 }
 
@@ -844,36 +371,121 @@ function updateSDGsDisplay() {
   });
 }
 
-function updateComboDisplay() {
-  const comboDisplay = document.getElementById('comboDisplay');
-  if (comboCount >= 2) {
-    comboDisplay.style.display = 'block';
-    document.getElementById('comboCount').textContent = comboCount;
-  } else {
-    comboDisplay.style.display = 'none';
-  }
-}
-
 function updateScore() {
   document.getElementById('score').textContent = score;
 }
 
-function showBuildMessage(text, points, comboBonus) {
+function showMessage(text) {
   const messageDiv = document.getElementById('message');
-  let bonusText = '';
-  
-  if (comboBonus > 0) {
-    bonusText = `<br>🔥 コンボボーナス +${comboBonus}点！`;
-  }
-  
-  // SDGs警告
-  let sdgsWarning = '';
-  if (sdgsStatus.energy < 20) {
-    sdgsWarning = '<br>⚡ エネルギー不足！発電所を建設しよう';
-  } else if (sdgsStatus.environment < 20) {
-    sdgsWarning = '<br>🌿 環境悪化！公園を増やそう';
-  }
-  
   messageDiv.innerHTML = `
-    <h3 style="color: #FFD700;">${text}</h3>
-    ${points > 0 ? `<p style="font-size: 20px; margin: 10
+    <h3>${text}</h3>
+    <button class="ui-button" onclick="hideMessage()" style="margin-top: 15px;">OK</button>
+  `;
+  messageDiv.style.display = 'block';
+}
+
+function hideMessage() {
+  document.getElementById('message').style.display = 'none';
+}
+
+function endGame() {
+  gameStarted = false;
+  clearInterval(gameTimer);
+  
+  const totalScore = score;
+  const avgSDGs = (sdgsStatus.energy + sdgsStatus.environment + sdgsStatus.economy) / 3;
+  
+  document.getElementById('message').innerHTML = `
+    <h2>🎊 ゲーム終了</h2>
+    <p>最終スコア: ${totalScore}点</p>
+    <p>SDGsバランス: ${Math.round(avgSDGs)}%</p>
+    <br>
+    <button class="ui-button" onclick="restartGame()" style="background:linear-gradient(145deg,#2196F3,#1976D2)">
+      もう一度遊ぶ
+    </button>
+  `;
+  document.getElementById('message').style.display = 'block';
+}
+
+function restartGame() {
+  document.getElementById('message').style.display = 'none';
+  const container = document.querySelector('#buildings-container');
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
+  }
+  startGame();
+}
+
+// イベントリスナー設定 - 確実に実行されるように
+function initializeGame() {
+  console.log('🔄 ゲーム初期化開始');
+  
+  // スタートボタン
+  const startBtn = document.getElementById('startBtn');
+  if (startBtn) {
+    startBtn.addEventListener('click', startGame);
+    console.log('✅ スタートボタン設定完了');
+  }
+  
+  // 施設ボタン
+  const buttonConfig = {
+    'houseBtn': 'house',
+    'hospitalBtn': 'hospital',
+    'parkBtn': 'park', 
+    'shopBtn': 'shop',
+    'powerBtn': 'power'
+  };
+  
+  Object.keys(buttonConfig).forEach(btnId => {
+    const btn = document.getElementById(btnId);
+    if (btn) {
+      btn.addEventListener('click', () => placeBuilding(buttonConfig[btnId]));
+    }
+  });
+  
+  console.log('✅ すべてのボタン設定完了');
+  
+  // マーカー検出イベント
+  const marker = document.querySelector('#marker');
+  if (marker) {
+    marker.addEventListener('markerFound', () => {
+      console.log('✅ マーカー認識成功！');
+      isMarkerVisible = true;
+      document.getElementById('debugInfo').textContent = '✅ マーカー認識中';
+      document.getElementById('debugInfo').style.background = 'rgba(0,255,0,0.8)';
+    });
+    
+    marker.addEventListener('markerLost', () => {
+      console.log('❌ マーカー消失');
+      isMarkerVisible = false;
+      document.getElementById('debugInfo').textContent = '❌ マーカーを探しています...';
+      document.getElementById('debugInfo').style.background = 'rgba(255,0,0,0.8)';
+    });
+  }
+  
+  // スマホタッチ対応
+  const buttons = document.querySelectorAll('.ui-button');
+  buttons.forEach(button => {
+    button.addEventListener('touchstart', function(e) {
+      e.preventDefault();
+      this.style.transform = 'scale(0.95)';
+    });
+    
+    button.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      this.style.transform = 'scale(1)';
+    });
+  });
+}
+
+// ページ読み込み完了時に初期化
+document.addEventListener('DOMContentLoaded', initializeGame);
+
+// スマホのタッチイベント対策
+document.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+}, { passive: false });
+</script>
+
+</body>
+</html>
