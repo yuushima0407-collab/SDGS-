@@ -1,65 +1,92 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ARテスト - 修正版</title>
+  <title>AR街づくりゲーム</title>
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <!-- 新しいバージョンのAR.jsを使用 -->
+  <!-- 修正：新しいバージョンのAR.js -->
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
 </head>
-<body style="margin: 0;">
+<body style="margin: 0; overflow: hidden;">
+
+<!-- スコア表示 -->
+<div style="position: fixed; top: 10px; left: 10px; font-size: 24px; color: white; z-index: 10; background: rgba(0,0,0,0.7); padding: 10px;">
+  スコア: <span id="score">0</span>
+</div>
+
+<!-- 建物選択ボタン -->
+<div style="position: fixed; bottom: 10px; left: 10px; z-index: 10;">
+  <button onclick="setBuilding('building1')" style="padding: 10px; margin: 5px; font-size: 16px;">住宅 (+5点)</button>
+  <button onclick="setBuilding('building2')" style="padding: 10px; margin: 5px; font-size: 16px;">病院 (+10点)</button>
+</div>
+
+<a-scene 
+  embedded 
+  arjs='sourceType: webcam; debugUIEnabled: false;'
+  vr-mode-ui="enabled: false"
+  renderer="logarithmicDepthBuffer: true;"
+>
+  <!-- マーカー -->
+  <a-marker preset="hiro" emitevents="true" id="marker">
+    <a-entity 
+      id="building" 
+      geometry="primitive: box; width: 1; height: 1; depth: 1" 
+      material="color: red; metalness: 0.3; roughness: 0.7" 
+      position="0 0.5 0"
+      scale="1 1 1"
+    ></a-entity>
+  </a-marker>
   
-  <!-- デバッグ情報表示 -->
-  <div style="position: fixed; top: 10px; left: 10px; color: white; background: rgba(0,0,0,0.8); padding: 10px; z-index: 1000; font-family: Arial;">
-    <div>🔍 Hiroマーカーを映してください</div>
-    <div id="status">状態: 読み込み中...</div>
-  </div>
+  <a-entity camera></a-entity>
+</a-scene>
 
-  <a-scene 
-    embedded 
-    arjs='sourceType: webcam; debugUIEnabled: true;'
-    vr-mode-ui="enabled: false"
-    renderer="logarithmicDepthBuffer: true;"
-  >
-    <!-- Hiroマーカー -->
-    <a-marker preset='hiro' emitevents="true" id="hiro-marker">
-      <a-box 
-        position='0 0.5 0' 
-        material='color: red;' 
-        scale='1 1 1'
-        id="target-object"
-      ></a-box>
-    </a-marker>
-    
-    <a-entity camera></a-entity>
-  </a-scene>
+<script>
+let score = 0;
 
-  <script>
-    // デバッグ用スクリプト
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('✅ ページ読み込み完了');
-      
-      const scene = document.querySelector('a-scene');
-      const marker = document.querySelector('#hiro-marker');
-      const statusDiv = document.querySelector('#status');
-      
-      scene.addEventListener('loaded', function() {
-        console.log('✅ A-Frameシーン読み込み完了');
-        statusDiv.textContent = '状態: カメラ起動待ち...';
-      });
-      
-      // マーカー検出イベント
-      marker.addEventListener('markerFound', function() {
-        console.log('🎯 マーカーを検出しました！');
-        statusDiv.textContent = '状態: マーカー検出中 ✅';
-        statusDiv.style.color = 'lightgreen';
-      });
-      
-      marker.addEventListener('markerLost', function() {
-        console.log('❌ マーカーを見失いました');
-        statusDiv.textContent = '状態: マーカーを探しています...';
-        statusDiv.style.color = 'white';
-      });
+function setBuilding(name) {
+  const building = document.querySelector('#building');
+  
+  if (name === 'building1') {
+    // 住宅 - 青い立方体
+    building.setAttribute('geometry', {
+      primitive: 'box',
+      width: 1,
+      height: 1,
+      depth: 1
     });
-  </script>
+    building.setAttribute('material', {
+      color: 'blue',
+      metalness: 0.3,
+      roughness: 0.7
+    });
+    score += 5;
+  } else if (name === 'building2') {
+    // 病院 - 緑の円柱
+    building.setAttribute('geometry', {
+      primitive: 'cylinder',
+      radius: 0.5,
+      height: 1
+    });
+    building.setAttribute('material', {
+      color: 'green',
+      metalness: 0.3,
+      roughness: 0.7
+    });
+    score += 10;
+  }
+  
+  document.getElementById('score').innerText = score;
+  console.log('建物変更:', name, 'スコア:', score);
+}
+
+// デバッグ用：マーカー検出時の確認
+document.querySelector('#marker').addEventListener('markerFound', function() {
+  console.log('🎯 マーカーを検出！建物を配置できます');
+});
+
+document.querySelector('#marker').addEventListener('markerLost', function() {
+  console.log('❌ マーカーを見失いました');
+});
+</script>
+
 </body>
 </html>
