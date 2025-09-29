@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>AIスマートシティ・チャレンジ</title>
+  <title>スマートシティ建設ゲーム</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <script src="https://jeromeetienne.github.io/AR.js/aframe/build/aframe-ar.js"></script>
+  <!-- 安定版AR.js -->
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
   <style>
     * {
       margin: 0;
@@ -120,6 +121,17 @@
       text-align: center;
       margin: 8px 0;
     }
+    .debug-info {
+      position: fixed;
+      bottom: 120px;
+      left: 20px;
+      background: rgba(255,0,0,0.8);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      z-index: 90;
+    }
   </style>
 </head>
 <body>
@@ -140,6 +152,11 @@
 <div class="mission-display">
   <div>🎯 <span id="missionTitle">エネルギー基盤を確立</span></div>
   <div class="timer" id="gameTimer">⏱️ 03:00</div>
+</div>
+
+<!-- デバッグ情報 -->
+<div class="debug-info" id="debugInfo">
+  マーカーを探しています...
 </div>
 
 <!-- 建物選択ボタン -->
@@ -191,6 +208,7 @@ let score = 0;
 let gameTime = 180;
 let gameTimer;
 let gameStarted = false;
+let isMarkerVisible = false;
 
 // SDGS状態
 let sdgsStatus = {
@@ -210,6 +228,11 @@ const buildingEffects = {
 
 // ゲーム開始
 function startGame() {
+  if (!isMarkerVisible) {
+    showMessage('❌ まずはHiroマーカーを映してください！');
+    return;
+  }
+  
   document.getElementById('message').style.display = 'none';
   score = 0;
   gameTime = 180;
@@ -246,7 +269,10 @@ function updateTimerDisplay() {
 
 // 建物を配置
 function placeBuilding(type) {
-  if (!gameStarted) return;
+  if (!gameStarted || !isMarkerVisible) {
+    showMessage('❌ ゲームをスタートしてください！');
+    return;
+  }
   
   const container = document.querySelector('#buildings-container');
   if (!container) return;
@@ -340,6 +366,15 @@ function updateScore() {
   document.getElementById('score').textContent = score;
 }
 
+function showMessage(text) {
+  const messageDiv = document.getElementById('message');
+  messageDiv.innerHTML = `
+    <h3>${text}</h3>
+    <button class="ui-button" onclick="this.parentElement.style.display='none'" style="margin-top: 15px;">OK</button>
+  `;
+  messageDiv.style.display = 'block';
+}
+
 function endGame() {
   gameStarted = false;
   clearInterval(gameTimer);
@@ -368,6 +403,24 @@ function restartGame() {
   startGame();
 }
 
+// マーカー検出イベント
+const marker = document.querySelector('#marker');
+if (marker) {
+  marker.addEventListener('markerFound', () => {
+    console.log('✅ マーカー認識成功！');
+    isMarkerVisible = true;
+    document.getElementById('debugInfo').textContent = '✅ マーカー認識中';
+    document.getElementById('debugInfo').style.background = 'rgba(0,255,0,0.8)';
+  });
+  
+  marker.addEventListener('markerLost', () => {
+    console.log('❌ マーカー消失');
+    isMarkerVisible = false;
+    document.getElementById('debugInfo').textContent = '❌ マーカーを探しています...';
+    document.getElementById('debugInfo').style.background = 'rgba(255,0,0,0.8)';
+  });
+}
+
 // スマホタッチ対応
 document.addEventListener('touchstart', function(e) {
   if (e.target.classList.contains('ui-button')) {
@@ -380,14 +433,6 @@ document.addEventListener('touchend', function(e) {
     e.target.style.transform = 'scale(1)';
   }
 });
-
-// マーカー検出
-const marker = document.querySelector('#marker');
-if (marker) {
-  marker.addEventListener('markerFound', () => {
-    console.log('マーカー認識');
-  });
-}
 </script>
 
 </body>
