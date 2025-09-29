@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AR街づくりゲーム</title>
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <script src="https://cdn.rawgit.com/AR-js-org/AR.js/3.3.2/aframe/build/aframe-ar.js"></script>
+</head>
+<body style="margin: 0; overflow: hidden;">
+
+<!-- スコア表示 -->
+<div style="position: fixed; top: 10px; left: 10px; font-size: 24px; color: white; z-index: 10;">
+  スコア: <span id="score">0</span>
+</div>
+
+<!-- 建物選択ボタン -->
+<div style="position: fixed; bottom: 10px; left: 10px; z-index: 10;">
+  <button onclick="setBuilding('building1')">住宅</button>
+  <button onclick="setBuilding('building2')">病院</button>
+</div>
+
+<a-scene embedded arjs>
+  <!-- マーカー -->
+  <a-marker preset="hiro">
+    <a-entity id="building" geometry="primitive: box" material="color: red;" position="0 0.5 0"></a-entity>
+  </a-marker>
+  <a-entity camera></a-entity>
+</a-scene>
+
+<script>
+let score = 0;
+
+function setBuilding(name) {
+  const building = document.querySelector('#building');
+  if (name === 'building1') {
+    building.setAttribute('geometry', 'primitive: box');
+    building.setAttribute('material', 'color: blue');
+    score += 5;
+  } else if (name === 'building2') {
+    building.setAttribute('geometry', 'primitive: cylinder');
+    building.setAttribute('material', 'color: green');
+    score += 10;
+  }
+  document.getElementById('score').innerText = score;
+}
+</script>
+
+</body>
+</html>
